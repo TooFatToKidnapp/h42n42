@@ -1,0 +1,21 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "bento/debian-11"
+  config.vm.synced_folder "..", "/home/vagrant/h42n42"
+  remote_server_one = "h42n42"
+
+  config.vm.define remote_server_one do |s|
+    s.vm.hostname = remote_server_one
+    s.vm.network 'private_network', ip: '192.168.56.110'
+    s.vm.provision "shell", path: "./init_vm.sh", privileged: false
+    s.vm.provider "virtualbox" do |vb|
+  	  vb.cpus = 1
+      vb.memory = "2048"
+      vb.name = remote_server_one
+    end
+  end
+
+end
