@@ -19,6 +19,7 @@ let page =
       ~a: [ a_class [ "canvas" ] ]
       [
         div ~a: [ a_class [ "river" ] ] [];
+
         div ~a: [ a_class [ "hospital" ] ] [];
       ];
     div
@@ -30,6 +31,7 @@ let page =
 
 let () =
   H42N42_app.register ~service:main_service (fun () () ->
+    let%client _ = Game.start_game () ; in
    Lwt.return
     (Eliom_tools.D.html ~title:"h42n42" ~css:[ ["css"; "h42n42.css" ] ] page))
 
