@@ -66,7 +66,7 @@ let%client init_creet g_speed =
     ; sick_count = 0
     ; max_direction_iter = 2500 + Random.int 1000
     ; top = max 65. (Random.float (t_max -. 15.))
-    ; t_min = 35.
+    ; t_min = 0.
     ; t_max
     ; t_step
     ; left = max 15. (Random.float (l_max -. 15.))
@@ -92,24 +92,33 @@ let%client heal_creet creet =
 
 let%client mouse_event_handler creet event =
   let radius = creet.size /. 2. in
-  let left = float_of_int event##.clientX -. radius in
-  let top = float_of_int event##.clientY -. radius in
-  creet.left <- max creet.l_min (min creet.l_max left);
-  creet.top <- max creet.t_min (min creet.t_max top);
-  creet.dom_elt##.style##.top := to_px creet.top;
-  creet.dom_elt##.style##.left := to_px creet.left;
-  (* Heal creets when dragged to the hospital area (bottom 60px of canvas) *)
-  let hospital_zone = creet.t_max -. 60. in
-  if creet.state != Healthy && creet.top >= hospital_zone then (
-    (* Visual feedback: add glow effect when in hospital zone *)
-    ignore (creet.dom_elt##.style##setProperty (Js.string "box-shadow") (Js.string "0 0 20px #4CAF50") Js.undefined);
-    heal_creet creet;
-    (* Update visual appearance after healing *)
-    creet.dom_elt##.style##.backgroundColor := get_creet_color creet.state;
-  ) else if creet.state != Healthy then (
-    (* Remove glow effect when not in hospital zone *)
-    ignore (creet.dom_elt##.style##setProperty (Js.string "box-shadow") (Js.string "none") Js.undefined);
-  )
+  let canvas = Dom_html.document##querySelector (Js.string ".canvas") in
+  match Js.Opt.to_option canvas with
+  | Some canvas_element ->
+      let canvas_rect = canvas_element##getBoundingClientRect in
+      let canvas_left = canvas_rect##.left in
+      let canvas_top = canvas_rect##.top in
+      let left = float_of_int event##.clientX -. canvas_left -. radius in
+      let top = float_of_int event##.clientY -. canvas_top -. radius in
+      creet.left <- max creet.l_min (min creet.l_max left);
+      creet.top <- max creet.t_min (min creet.t_max top);
+      creet.dom_elt##.style##.top := to_px creet.top;
+      creet.dom_elt##.style##.left := to_px creet.left;
+      let hospital_zone = creet.t_max -. 60. in
+      if creet.state != Healthy && creet.top >= hospital_zone then (
+        ignore (creet.dom_elt##.style##setProperty (Js.string "box-shadow") (Js.string "0 0 20px #4CAF50") Js.undefined);
+        heal_creet creet;
+        creet.dom_elt##.style##.backgroundColor := get_creet_color creet.state;
+      ) else if creet.state != Healthy then (
+        ignore (creet.dom_elt##.style##setProperty (Js.string "box-shadow") (Js.string "none") Js.undefined);
+      )
+  | None ->
+      let left = float_of_int event##.clientX -. radius in
+      let top = float_of_int event##.clientY -. radius in
+      creet.left <- max creet.l_min (min creet.l_max left);
+      creet.top <- max creet.t_min (min creet.t_max top);
+      creet.dom_elt##.style##.top := to_px creet.top;
+      creet.dom_elt##.style##.left := to_px creet.left
 
 let%client handle_mouse_events creet mouse_event _ =
   creet.is_not_invulnerable <- false;
@@ -201,9 +210,7 @@ let%client check_direction creet (creets : creet_info) =
   else if creet.left <= creet.l_min || creet.left >= creet.l_max
   then (
     creet.l_step <- Float.neg creet.l_step;
-    (* Those extra moves are needed so that a creet doesn't get stuck on edges *)
     move creet);
-  (* Go after another creet or make a surprise direction change *)
   if creet.state = Mean
   then (
     creet.iter <- 0;
