@@ -29,8 +29,8 @@ type%client creet =
 let%client default_creet_stats () =
   let size = 50. in
   let speed = 1. in
-  let t_max = 1000. -. size in
-  let l_max = 800. -. size in
+  let t_max = 800. -. size in
+  let l_max = 1000. -. size in
   speed, size, t_max, l_max
 
 let%client random_steps () =
@@ -43,10 +43,10 @@ let%client random_steps () =
 let%client get_creet_color state =
   Js.string
     (match state with
-    | Healthy -> "dodgerblue"
-    | Sick -> "darkblue"
-    | Berserk -> "sienna"
-    | Mean -> "tomato")
+    | Healthy -> "#4A90E2"
+    | Sick -> "#8B4513"
+    | Berserk -> "#FF0000"
+    | Mean -> "#800080")
 
 let%client to_px size = Js.string (Printf.sprintf "%fpx" size)
 
@@ -88,7 +88,10 @@ let%client heal_creet creet =
   creet.size <- size;
   creet.t_max <- t_max;
   creet.l_max <- l_max;
-  creet.sick_count <- 0
+  creet.sick_count <- 0;
+  (* Update visual size to original size *)
+  creet.dom_elt##.style##.height := to_px creet.size;
+  creet.dom_elt##.style##.width := to_px creet.size
 
 let%client mouse_event_handler creet event =
   let radius = creet.size /. 2. in

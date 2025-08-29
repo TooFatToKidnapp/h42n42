@@ -19,9 +19,9 @@ type%client game =
 
 let%client update_creets_counter g =
   let creets_count = List.length g.creets in
-  let format = if creets_count = 1 then ' ' else 's' in
+  let format = if creets_count = 1 then " " else "\'s" in
   let new_count =
-    span [txt (Printf.sprintf "%d creets%c" creets_count format)]
+    span [txt (Printf.sprintf "%d creets%s" creets_count format)]
   in
   let old_count = g.creet_count_span in
   Html.Manip.replaceSelf old_count new_count;
