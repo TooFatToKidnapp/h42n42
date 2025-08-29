@@ -29,8 +29,8 @@ type%client creet =
 let%client default_creet_stats () =
   let size = 50. in
   let speed = 1. in
-  let t_max = 700. -. size in
-  let l_max = 1000. -. size in
+  let t_max = 1000. -. size in
+  let l_max = 800. -. size in
   speed, size, t_max, l_max
 
 let%client random_steps () =
@@ -77,6 +77,8 @@ let%client init_creet g_speed =
   creet.dom_elt##.style##.backgroundColor := get_creet_color creet.state;
   creet.dom_elt##.style##.height := to_px creet.size;
   creet.dom_elt##.style##.width := to_px creet.size;
+  creet.dom_elt##.style##.top := to_px creet.top;
+  creet.dom_elt##.style##.left := to_px creet.left;
   creet
 
 let%client heal_creet creet =
@@ -96,7 +98,18 @@ let%client mouse_event_handler creet event =
   creet.top <- max creet.t_min (min creet.t_max top);
   creet.dom_elt##.style##.top := to_px creet.top;
   creet.dom_elt##.style##.left := to_px creet.left;
-  if creet.state != Healthy && creet.top >= creet.t_max then heal_creet creet
+  (* Heal creets when dragged to the hospital area (bottom 60px of canvas) *)
+  let hospital_zone = creet.t_max -. 60. in
+  if creet.state != Healthy && creet.top >= hospital_zone then (
+    (* Visual feedback: add glow effect when in hospital zone *)
+    ignore (creet.dom_elt##.style##setProperty (Js.string "box-shadow") (Js.string "0 0 20px #4CAF50") Js.undefined);
+    heal_creet creet;
+    (* Update visual appearance after healing *)
+    creet.dom_elt##.style##.backgroundColor := get_creet_color creet.state;
+  ) else if creet.state != Healthy then (
+    (* Remove glow effect when not in hospital zone *)
+    ignore (creet.dom_elt##.style##setProperty (Js.string "box-shadow") (Js.string "none") Js.undefined);
+  )
 
 let%client handle_mouse_events creet mouse_event _ =
   creet.is_not_invulnerable <- false;

@@ -8,6 +8,7 @@ open%client Eliom_content
 
 (* open%client Js_of_ocaml *)
 open%client Js_of_ocaml_lwt
+open%client Js_of_ocaml
 open%client Creet
 
 type%client game =
@@ -22,8 +23,8 @@ let%client update_creets_counter g =
   let new_count =
     span [txt (Printf.sprintf "%d creets%c" creets_count format)]
   in
-  let old_clount = g.creet_count_span in
-  Html.Manip.replaceSelf old_clount new_count;
+  let old_count = g.creet_count_span in
+  Html.Manip.replaceSelf old_count new_count;
   g.creet_count_span <- new_count
 
 let%client add_creets g =
@@ -67,10 +68,13 @@ let%client rec spawn_game g =
 
 let%client start_game () =
   Random.self_init ();
+  Firebug.console##log (Js.string "Game starting...");
   let creet_count_span = span [txt "0 creets"] in
-  let g : game = {iter = 0; g_speed = ref 0.; creets = []; creet_count_span} in
+  let g : game = {iter = 0; g_speed = ref 0.5; creets = []; creet_count_span} in
   Html.Manip.appendChild ~%creet_count_div creet_count_span;
+  Firebug.console##log (Js.string "Adding creets...");
   for _ = 1 to 4 do
     add_creets g
   done;
+  Firebug.console##log (Js.string (Printf.sprintf "Total creets: %d" (List.length g.creets)));
   Lwt.async (fun () -> spawn_game g)

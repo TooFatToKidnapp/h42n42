@@ -11,7 +11,12 @@ let page =
   body
     [ div
         ~a:[a_class ["canvas"]]
-        [div ~a:[a_class ["river"]] []; div ~a:[a_class ["hospital"]] []]
+        [
+          div ~a:[a_class ["river"]] [];
+          Game.elt;
+          div ~a:[a_class ["hospital"]] []
+        ];
+        Game.creet_count_div
     ; About.elm ]
 
 module H42N42_app = Eliom_registration.App (struct
