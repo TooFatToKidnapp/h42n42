@@ -1,10 +1,7 @@
-open Eliom_content
-open Html.D
-
-module H42N42_app = Eliom_registration.App (struct
-    let application_name = "H42N42"
-    let global_data_path = None
-  end)
+module Game = Game
+module Creet = Creet
+module%shared About = About
+open Eliom_content.Html.D
 
 let main_service =
   Eliom_service.create ~path:(Eliom_service.Path [])
@@ -15,7 +12,12 @@ let page =
     [ div
         ~a:[a_class ["canvas"]]
         [div ~a:[a_class ["river"]] []; div ~a:[a_class ["hospital"]] []]
-    ; div ~a:[a_class ["about"]] [p [txt "About: H42N42"]] ]
+    ; About.elm ]
+
+module H42N42_app = Eliom_registration.App (struct
+    let application_name = "H42N42"
+    let global_data_path = None
+  end)
 
 let () =
   H42N42_app.register ~service:main_service (fun () () ->
